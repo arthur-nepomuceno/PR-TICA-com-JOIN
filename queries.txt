@@ -1,0 +1,31 @@
+QUESTÃO 1
+
+QUERY: 
+
+SELECT users.id, users.name, cities.name AS city 
+FROM users 
+JOIN cities 
+ON users."cityId"= cities.id 
+WHERE users."cityId" = 3658 
+ORDER BY users.id ASC;
+
+RESPOSTA:
+
+ id  |  name  |      city      
+-----+--------+----------------
+   4 | Otho   | Rio de Janeiro
+  30 | Tildi  | Rio de Janeiro
+  60 | Dianna | Rio de Janeiro
+ 100 | Ryon   | Rio de Janeiro
+ 127 | Butch  | Rio de Janeiro
+ 276 | Garnet | Rio de Janeiro
+ 400 | Nowell | Rio de Janeiro
+ 
+QUESTÂO 2
+
+QUERY:
+
+SELECT testimonials.id, u1.name AS writer, u2.name AS recipient, testimonials.message 
+FROM testimonials 
+JOIN users u1 ON testimonials."writerId" = u1.id 
+JOIN users u2 ON testimonials."recipientId" = u2.id;
