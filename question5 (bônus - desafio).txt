@@ -1,0 +1,199 @@
+### Desafio Bônus
+
+Utilizando uma *query*, obtenha a lista das diferentes escolas (`schools`) e cursos (`courses`) onde estudaram as pessoas que estão aplicando pra posição de **“Software Engineer”** na empresa com id **10**. Só devem ser consideradas as vagas que estiverem ativas, ou seja, quando o campo `active` da tabela `jobs` estiver **true**.
+
+A resposta deve vir no formato:
+
+```
+|---id---|---school---|--------course--------|----company----|--------role-------|
+    1        Driven       Software Engineer        OLX         Software Engineer
+    2        Unicamp      Computer Science         OLX         Software Engineer
+   ...        ...               ...                 ...              ...
+```
+
+**OBS:** a coluna `id` se refere ao id da escola.
+
+ENTENDENDO O PROBLEMA
+
+Primeira coisa: quais tabelas são mencionadas no enunciado?
+
+- schools
+- courses
+- jobs
+- applicants
+- roles
+
+Segunda coisa: quem são as pessoas que estão aplicando para a posição de "Software Engineer"?
+
+- a tabela de applicants me diz quem é a pessoa que está aplicando (apllicant.userId) e para qual trabalho ela está aplicando (applicant.jobId)
+- a tabela de jobs me diz para qual função é o trabalho (jobs.roleId) e para qual empresa é o trabalho (jobs.companyId)
+- com o userId da tabela applicants eu consigo saber, pelo mesmo userId presente na tabela educations, qual é o id da escola (schoolId) e o
+id do curso (courseId) desse usuário.
+
+Terceira coisa: qual tabela concentra o maior número de informações?
+
+- schools tem o nome da escola;
+- courses tem o nome do curso;
+- jobs tem o id da empresa, o id da função, e se a vaga está ativaou não;
+- apllicants tem o id do usuário e o id do trabalho;
+- roles tem o nome da função;
+- e educations, apesar de não estar mencionada diretamente, é quem relacionada o id do usuário com o nome da escola e do curso;
+
+Considerando tudo isso, escolho começar por jobs, que é a que guarda o maior número de informações;
+
+a) Buscando os jobs, filtrando para a empresa com id 10 (jobs."companyId" = 10) e para as vagas ativas (jobs.active = true)
+
+QUERY:
+
+SELECT * 
+FROM jobs 
+WHERE jobs."companyId" = 10 
+AND jobs.active = true;
+
+b) Considerando que jobs guarda o id da empresa, e considerando que eu quero só os jobs que sejam referentes a Software Engineer,
+eu posso pesquisar, na tabela roles, qual o id dessa função, e então usar esse id como condição na minha busca na tabela roles.
+
+QUERY:
+
+SELECT * FROM roles WHERE name LIKE '%Software Engineer%';
+
+E com essa busca eu descubro que o id é 2
+
+c) Agora eu uso essa informação na query que eu já tinha:
+
+QUERY:
+
+SELECT * 
+FROM jobs 
+WHERE jobs."companyId" = 10 
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+RESPOSTA:
+
+ id  | companyId | roleId |         description         | salary | active 
+-----+-----------+--------+-----------------------------+--------+--------
+ 101 |        10 |      2 | Lorem ipsum dolor sit amet. |  90000 | t
+
+d) Agora que eu sei qual é o id desse trabalho em específico, posso cruzar essa query com a tabela de aplicações (JOIN applicants),
+buscando os resultados onde o jobId da tabela de aplicações for igual ao id da tabela jobs (ON applicants."jobId" = jobs.id)
+
+QUERY:
+
+SELECT * 
+FROM jobs 
+JOIN applicants ON applicants."jobId" = jobs.id 
+WHERE jobs."companyId" = 10 
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+RESPOSTA:
+
+ id  | companyId | roleId |         description         | salary | active | id  | userId | jobId 
+-----+-----------+--------+-----------------------------+--------+--------+-----+--------+-------
+ 101 |        10 |      2 | Lorem ipsum dolor sit amet. |  90000 | t      | 101 |    193 |   101
+ 101 |        10 |      2 | Lorem ipsum dolor sit amet. |  90000 | t      | 102 |     26 |   101
+ 101 |        10 |      2 | Lorem ipsum dolor sit amet. |  90000 | t      | 103 |     30 |   101
+ 101 |        10 |      2 | Lorem ipsum dolor sit amet. |  90000 | t      | 104 |     34 |   101
+ 
+ e) Agora que eu tenho o userId disponível através da tabela applicants. posso relacionar essa informação com a tabela educations, 
+ pois é ela quem vai me informar o id da escola e o id do curso (JOIN educations ON applicants."userId" = educations."userId")
+ 
+ QUERY:
+ 
+SELECT * 
+FROM jobs 
+JOIN applicants ON applicants."jobId" = jobs.id
+JOIN educations ON applicants."userId" = educations."userId"
+WHERE jobs."companyId" = 10 
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+f) Agora que schoolId e courseId estão disponíveis através da tabela educations, posso relacionar essa informações com a tabela schools
+e a tabela courses, de forma a poder ver qual o nome da escola e qual o nome do curso, assim:
+
+JOIN schools ON educations."schoolId" = schools.id
+JOIN courses ON educations."coursesId" = courses.id
+
+QUERY:
+
+SELECT * 
+FROM jobs 
+JOIN applicants ON applicants."jobId" = jobs.id
+JOIN educations ON applicants."userId" = educations."userId"
+JOIN schools ON educations."schoolId" = schools.id
+JOIN courses ON educations."courseId" = courses.id
+WHERE jobs."companyId" = 10
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+g) Chegando no final, percebo que o enunciado especifica o id da empresa, mas que na resposta ele quer o nome da empresa. Para conseguir
+isso, preciso unir as informações que eu tenho com a tabela companies (JOIN companies) onde o companyId da tabela jobs for igual ao id da tabela companies(ON jobs."companyId" = companies.id);
+
+QUERY:
+
+SELECT * 
+FROM jobs
+JOIN companies ON companies.id = jobs."companyId"
+JOIN applicants ON applicants."jobId" = jobs.id
+JOIN educations ON educations."userId" = applicants."userId"
+JOIN schools ON schools.id = educations."schoolId"
+JOIN courses ON courses.id = educations."courseId"
+WHERE jobs."companyId" = 10
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+
+h) De modo simila ao item anterior, preciso acessar o nome da função e para isso, é necessário fazer uma união com a tabela roles, juntando
+o roleId da tabela jobs com o id da tabela roles (JOIN roles ON roles.id = jobs."roleId")
+
+QUERY:
+
+SELECT * 
+FROM jobs
+JOIN roles ON roles.id = jobs."roleId"
+JOIN companies ON companies.id = jobs."companyId"
+JOIN applicants ON applicants."jobId" = jobs.id
+JOIN educations ON educations."userId" = applicants."userId"
+JOIN schools ON schools.id = educations."schoolId"
+JOIN courses ON courses.id = educations."courseId"
+WHERE jobs."companyId" = 10
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+i) E para terminar, agora eu preciso especificar quais colunas eu quero ver, conforme o enunciado:
+
+- id da escola (schools.id);
+- nome da escola com o codinome "school" (schools.name AS school);
+- nome do curso com o codinome "course" (courses.name AS course);
+- nome da empresa com o codinome "company" (companies.name AS company);
+- nome da função com o codinome "role" (roles.name AS role);
+
+QUERY FINAL:
+
+SELECT schools.id, schools.name AS school, courses.name AS course, companies.name AS company, roles.name AS role 
+FROM jobs
+JOIN roles ON roles.id = jobs."roleId"
+JOIN companies ON companies.id = jobs."companyId"
+JOIN applicants ON applicants."jobId" = jobs.id
+JOIN educations ON educations."userId" = applicants."userId"
+JOIN schools ON schools.id = educations."schoolId"
+JOIN courses ON courses.id = educations."courseId"
+WHERE jobs."companyId" = 10
+AND jobs.active = true 
+AND jobs."roleId" = 2;
+
+RESPOSTA FINAL:
+
+ id |               school                |        course        | company |       role        
+----+-------------------------------------+----------------------+---------+-------------------
+ 22 | European University                 | Business             | Fadeo   | Software Engineer
+ 10 | Universitas Slamet Riyadi Surakarta | Psychology           | Fadeo   | Software Engineer
+ 10 | Universitas Slamet Riyadi Surakarta | Software Engineering | Fadeo   | Software Engineer
+ 10 | Universitas Slamet Riyadi Surakarta | Engineering          | Fadeo   | Software Engineer
+
+
+
+
+
+

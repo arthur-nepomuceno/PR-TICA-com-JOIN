@@ -136,7 +136,7 @@ ON users."cityId"= cities.id
 WHERE users."cityId" = 3658 
 ORDER BY users.id ASC;
 
-RESPOSTA:
+RESPOSTA FINAL:
 
  id  |  name  |      city      
 -----+--------+----------------

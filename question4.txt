@@ -1,0 +1,101 @@
+### Questão 4:
+
+Utilizando uma *query*, obtenha as empresas (`companies`) para as quais o usuário com id **50** trabalha atualmente. Para filtrar quem trabalha atualmente, utilize o campo `endDate` da tabela `experiences`. Se ele estiver null (`IS NULL`), significa que a pessoa ainda não encerrou a experiência dela na empresa, ou seja, está trabalhando lá.
+
+A resposta deve vir no formato:
+
+```
+|---id---|---name---|--------role--------|----company----|---startDate---|
+    50        João      Software Engineer        OLX          2020-06-01
+    50        João         Consultant            IBM          2022-02-01
+   ...        ...            ...                ...              ...
+```
+
+**OBS:** a coluna `id` se refere ao id do usuário
+
+a) Primeira coisa é: quais tabelas são mencionadas no enunciado e na resposta?
+
+- companies é mencionada em "obtenha as empresas (`companies`)"
+- users é mencionada em "para as quais o usuário com id **50**"
+- experiences é mencionada em "utilize o campo `endDate` da tabela `experiences`" 
+- roles aparece na resposta, com o nome "role"
+
+Segunda coisa é: como essas tabelas se relacionam? Para isso, eu observo a imagem fornecida. Observando, posso notar que:
+
+- a tabela users, a tabela companies e a tabela roles estão conectadas pela tabela experiences;
+- a tabela experiences guarda tanto a informação sobre o usuário (userId), quanto a informação sobre a empresa (companyId)
+e também a informação sobre a função do empregado (roleId)
+- sendo assim, é lógico pensar que a tabela experiences é a tabela a partir da qual eu estabeleço a conexão (JOIN) com
+as outras três, à fim de buscar as informações que eu quero.
+
+Terceira coisa é: de quais colunas eu realmente preciso?
+
+- id do usuário (users.id);
+- nome do usuário (users.name);
+- o nome da função (roles.name) com o codinome 'role' (roles.name AS role);
+- o nome da empresa (companies.name) com o codinome 'company' (companies.name AS company);
+- a coluna startDate (experiences."startDate") porém somente onde a coluna endDate for nula (experiences."endDate" IS NULL);
+
+b) Buscando a tabela experiences;
+
+QUERY: SELECT * FROM experiences;
+
+c) Conectando com a tabela users;
+
+QUERY: 
+
+SELECT * 
+FROM experiences 
+JOIN users ON experiences."userId" = users.id;
+
+d) Buscando somente o usuário com id = 50;
+
+QUERY:
+
+SELECT * 
+FROM experiences 
+JOIN users ON experiences."userId" = users.id 
+WHERE experiences."userId" = 50;
+
+e) Conectando com a tabela companies:
+
+QUERY:
+
+SELECT * 
+FROM experiences 
+JOIN users ON experiences."userId" = users.id 
+JOIN companies ON experiences."companyId" = companies.id 
+WHERE experiences."userId" = 50;
+
+f) Conectando com a tabela roles;
+
+QUERY:
+
+SELECT * 
+FROM experiences 
+JOIN users ON experiences."userId" = users.id 
+JOIN companies ON experiences."companyId" = companies.id 
+JOIN roles ON experiences."roleId" = roles.id 
+WHERE experiences."userId" = 50;
+
+g) Filtrando somente as tabelas que eu quero:
+
+QUERY FINAL:
+
+SELECT users.id, users.name, roles.name AS role, companies.name AS company, experiences."startDate" 
+FROM experiences 
+JOIN users ON experiences."userId" = users.id 
+JOIN companies ON experiences."companyId" = companies.id 
+JOIN roles ON experiences."roleId" = roles.id 
+WHERE experiences."userId" = 50
+AND experiences."endDate" IS NULL;
+
+RESPOSTA FINAL:
+
+ id | name |       role        | company | startDate  
+----+------+-------------------+---------+------------
+ 50 | Pam  | Software Engineer | Driven  | 2007-03-22
+
+
+
+

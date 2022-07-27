@@ -1,0 +1,96 @@
+### Questão 3:
+
+Utilizando uma *query*, obtenha todos os cursos (`courses`) que o usuário com id **30** já finalizou, incluindo o nome da escola. O que indica que um usuário terminou um curso é o campo `status` da tabela `educations`, que deve estar como "**finished**".
+
+A resposta deve vir no formato:
+
+```
+|---id---|---name---|---course---|----school----|---endDate---|
+    30        João      HTML/CSS       Driven       2021-12-01
+    30        João      JavaScript     Driven       2022-01-20
+   ...        ...         ...           ...          ...
+```
+
+**OBS:** a coluna `id` se refere ao id do usuario
+
+a) Nesse caso, observando as informações sobre as tabelas da base de dados, eu posso perceber o seguinte:
+	- a tabela "educations" é a tabela que guarda 
+	qual usuário fez qual curso, em qual escola, 
+	e se o curso está finalizado ou não.
+	
+O enunciado me informa que devo obter somente os dados do usuário com o id 30. Isso implica buscar as informações da tabela "education"
+somente onde o userId na tabela for igual a 30.
+
+QUERY:
+
+SELECT * 
+FROM educations 
+WHERE educations."userId" = 30;
+
+RESPOSTA:
+
+ id | userId | schoolId | courseId | startDate  |  endDate   |  status  
+----+--------+----------+----------+------------+------------+----------
+ 54 |     30 |       10 |        3 | 2000-01-03 | 2004-12-21 | finished
+ 55 |     30 |       10 |        5 | 2005-01-03 | 2008-12-21 | finished
+ 56 |     30 |       10 |       10 | 2009-05-01 | 2011-06-30 | finished
+
+b) Com base no userId, eu consigo pegar o nome do usuário cruzando (JOIN) essa tabela com a tabela de usuários,
+onde o userId da tabela "educations" (educations."userId") for igual ao id da tabelas "users" (users.id)
+
+QUERY:
+
+SELECT * 
+FROM educations 
+JOIN users 
+ON educations."userId" = users.id 
+WHERE educations."userId" = 30;
+
+c) Seguindo em frente, se eu precisei juntar com a tabela de usuários para conseguir o nome do userId = 30, pela mesma lógica
+faz sentido eu juntar com a tabela de cursos para obter o nome do curso e com a tabela de escolas para obter o nome da escola.
+
+QUERY:
+
+SELECT * 
+FROM educations 
+JOIN users 
+ON educations."userId" = users.id
+JOIN courses
+ON educations."courseId" = courses.id
+JOIN schools 
+ON educations."schoolId" = schools.id 
+WHERE educations."userId" = 30;
+
+d) Por fim, basta que, ao invés de selecionar tudo de todas as tabelas, eu selecione apenas as colunas pedidas, dando os nomes
+tal qual o especificado:
+
+- de users eu quero apenas o id (users.id com o codinome "id") e o nome (users.name com o codinome "name");
+- de courses eu quero apenas o nome do curso (courses.name com o codinome "course");
+- de scholls, eu também quero só o nome (schools.name com o codinome "school");
+- e de educations eu quero apenas a data de fim do curso (educations."endDate");
+
+QUERY:
+
+SELECT users.id AS id, users.name AS name, courses.name AS course, schools.name AS school, educations."endDate"
+FROM educations 
+JOIN users 
+ON educations."userId" = users.id
+JOIN courses
+ON educations."courseId" = courses.id
+JOIN schools 
+ON educations."schoolId" = schools.id 
+WHERE educations."userId" = 30;
+
+RESPOSTA FINAL:
+
+ id | name  |        course        |               school                |  endDate   
+----+-------+----------------------+-------------------------------------+------------
+ 30 | Tildi | Psychology           | Universitas Slamet Riyadi Surakarta | 2004-12-21
+ 30 | Tildi | Software Engineering | Universitas Slamet Riyadi Surakarta | 2008-12-21
+ 30 | Tildi | Engineering          | Universitas Slamet Riyadi Surakarta | 2011-06-30
+
+
+
+
+
+

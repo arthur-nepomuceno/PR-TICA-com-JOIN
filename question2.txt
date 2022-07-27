@@ -1,166 +1,89 @@
-### Questão 1:
+### Questão 2:
 
-Utilizando uma *query*, obtenha todos os usuários (`users`) que vivem na cidade (`cities`) cujo nome seja “**Rio de Janeiro**”.
+Utilizando umas *query*, obtenha todos os depoimentos (`testimonials`) cadastrados, incluindo o nome do remetente e do destinatário.
 
 A resposta deve vir no formato:
 
 ```
-|---id---|---name---|-------city-------|
-    1        João      Rio de Janeiro
-    2        Maria     Rio de Janeiro
-   ...        ...            ...
+|---id---|---writer---|---recipient---|--------------message------------------|
+    1        João           Maria         Foi ótimo trabalhar com a Maria...
+    2        Maria          João           Adorei trabalhar com o João...
+   ...        ...            ...                     ...
 ```
 
-**OBS:** a coluna `id` se refere ao id do usuário
+**OBS:** a coluna `id` se refere ao id do depoimento
 
-**Dica:** utilize apelidos para os nomes de colunas ficarem como você deseja (ex: `SELECT cities.name AS city`)
+**Dica:** para fazer múltiplos joins com uma mesma tabela, use apelidos para cada join (ex: `JOIN tabela t1`)
 
-**Dica:** na query, todo nome de coluna que tenha letras maiúsculas precisa estar entre aspas duplas (ex: `ON users."cityId" = ...`). Repare que somente o nome da coluna fica entre aspas duplas.
+a) "obtenha todos os depoimentos (`testimonials`) cadastrados"
 
-RACIONAL:
-
-a) "Utilizando uma *query*, obtenha todos os usuários (`users`)"
-
-- Então a primeira coisa que eu quero ser capaz de fazer é uma query que me retorne todos os usuários.
+- Então a primeira coisa é conseguir buscar todos os depoimentos
 
 QUERY: 
 
 SELECT * 
-FROM users;
+FROM testimonials;
 
-RESPOSTA:
-id  |     name      |               email                |   password   | birthDate  |                    imageUrl                     | cityId 
------+---------------+------------------------------------+--------------+------------+-------------------------------------------------+--------
-   1 | Galina        | gseson0@google.nl                  | L5fLjIAte    | 1964-11-08 | http://dummyimage.com/142x100.png/dddddd/000000 |   3827
-   2 | Siusan        | skeilloh1@berkeley.edu             | K6RFi7pCkM   | 1993-01-01 | http://dummyimage.com/117x100.png/ff4444/ffffff |   1336
-   3 | Kara-lynn     | kbohling2@nydailynews.com          | ngv4qIjHJh   | 1993-04-26 | http://dummyimage.com/152x100.png/ff4444/ffffff |   2033
-   .
-   .
-   .
- 498 | Jessey        | jniesedt@xing.com                  | a8Cx8gv      | 1973-08-05 | http://dummyimage.com/122x100.png/cc0000/ffffff |    884
- 499 | Lexis         | llambaldu@seesaa.net               | ZLT1qrO2PG1  | 2001-07-05 | http://dummyimage.com/149x100.png/dddddd/000000 |    649
- 500 | Parrnell      | psevindv@nih.gov                   | vNCGjvFVbDn  | 1985-04-28 | http://dummyimage.com/155x100.png/dddddd/000000 |   1768
+RESPOSTA: 
 
-
-b) "que vivem na cidade (`cities`) cujo nome seja “**Rio de Janeiro**”."
-
-- Como já nos é informado (vide figura do banco de dados) que a tabela cities é composta por um id e um nome de cidade,
-o que eu quero agora é unir (JOIN) a tabela users com a tabela cities, somente onde o cityId da tabela users for igual ao id
-da cidade do Rio de Janeiro que está registrado na tabela cities. 
-
-- Então primeiro eu preciso saber que id é esse e, para isso, faço uma query na tabela cities.
-
-QUERY: 
-
-SELECT * 
-FROM cities 
-WHERE name LIKE '%Rio de Janeiro%';
-
-RESPOSTA:
-  id  |      name      
-------+----------------
- 3658 | Rio de Janeiro
+ id  | writerId | recipientId |              message              | publicationDate 
+-----+----------+-------------+-----------------------------------+-----------------
+   1 |      272 |         327 | Adorei trabalhar com o Justis     | 2006-07-28
+   2 |      272 |         327 | Adorei trabalhar com o Justis     | 2006-07-28
+   3 |        7 |         464 | Adorei trabalhar com o Antonio    | 2018-12-20
+.
+.
+.
+  99 |      225 |          39 | Adorei trabalhar com o Hastie     | 1980-11-16
+ 100 |      494 |          89 | Adorei trabalhar com o Lolita     | 1981-04-28
+ 101 |      331 |          86 | Adorei trabalhar com o Chadwick   | 2016-07-31
  
-- Agora que eu sei o id da cidade (3658), quero buscar só os usuários que tenha esse id de cidade no registro
+ 
+b) "incluindo o nome do remetente e do destinatário"
+
+- Agora quero juntar com a tabela de usuários, onde o writerId da tabela de testimonials (testimonials."writerId")
+é igual ao id da tabela de usuários (users.id) E TAMBÉM onde o recipientId da tabela testimonials (testimonials."recipientId")
+é igual ao id da tabela de usuários (users.id). 
+Como fazer:
+ - chamando um JOIN para cada união que quero fazer;
+ - como o JOIN é na mesma tabela (users), em cada JOIN eu preciso apelidar essa tabela com um nome diferente para que,
+ na hora da comparação, a diferenciação possa acontecer
 
 QUERY: 
 
 SELECT * 
-FROM users 
-WHERE users."cityId" = 3658;
+FROM testimonials 
+JOIN users u1 ON testimonials."writerId" = u1.id 
+JOIN users u2 ON testimonials."recipientId" = u2.id;
 
-RESPOSTA:
+- Agora basta selecionar quais as tabelas que eu quero, que são:
 
- id  |  name  |            email             |   password   | birthDate  |                    imageUrl                     | cityId 
------+--------+------------------------------+--------------+------------+-------------------------------------------------+--------
- 276 | Garnet | gweine7n@google.com.hk       | BdGy3r05     | 1994-02-10 | http://dummyimage.com/170x100.png/dddddd/000000 |   3658
-   4 | Otho   | ojays3@php.net               | fJNQxhGO     | 1980-11-01 | http://dummyimage.com/241x100.png/cc0000/ffffff |   3658
-  30 | Tildi  | tchavest@nytimes.com         | YOhMHS6      | 1978-03-30 | http://dummyimage.com/234x100.png/ff4444/ffffff |   3658
-  60 | Dianna | dchilles1n@diigo.com         | j2Z9XDSjJXfB | 1998-06-27 | http://dummyimage.com/100x100.png/ff4444/ffffff |   3658
- 100 | Ryon   | rmungan2r@symantec.com       | 6RpxB0dBUw   | 2001-08-12 | http://dummyimage.com/172x100.png/cc0000/ffffff |   3658
- 127 | Butch  | bhulles3i@ask.com            | 3kROOr       | 1969-05-24 | http://dummyimage.com/234x100.png/cc0000/ffffff |   3658
- 400 | Nowell | nkingsmillb3@cyberchimps.com | XJQXki89oum  | 1984-09-24 | http://dummyimage.com/108x100.png/ff4444/ffffff |   3658
-
-- Sendo capaz de retornar essa lista, agora eu preciso juntar ela (JOIN) com a lista de cidades, somente onde o id da cidade (cities.id)
-for igual ao id de cidade registrado na tabela de usuários (cityId);
+a coluna de id do testimonials (testimonials.id)
+a coluna de users.name com o nome "writer" (u1.name AS writer)
+mais uma vez a coluna de users.name, só que com o nome de "recipient" (u2.name AS recipient)
+e a coluna de mensagens dos testimonials (testimonials.message)
 
 QUERY:
 
-SELECT * 
-FROM users 
-JOIN cities 
-ON users."cityId"= cities.id 
-WHERE users."cityId" = 3658;
+SELECT testimonials.id, u1.name AS writer, u2.name AS recipient, testimonials.message 
+FROM testimonials 
+JOIN users u1 ON testimonials."writerId" = u1.id 
+JOIN users u2 ON testimonials."recipientId" = u2.id
+ORDER BY testimonials.id ASC;
 
-RESPOSTA:
- id  |  name  |            email             |   password   | birthDate  |                    imageUrl                     | cityId |  id  |      name      
------+--------+------------------------------+--------------+------------+-------------------------------------------------+--------+------+----------------
- 276 | Garnet | gweine7n@google.com.hk       | BdGy3r05     | 1994-02-10 | http://dummyimage.com/170x100.png/dddddd/000000 |   3658 | 3658 | Rio de Janeiro
-   4 | Otho   | ojays3@php.net               | fJNQxhGO     | 1980-11-01 | http://dummyimage.com/241x100.png/cc0000/ffffff |   3658 | 3658 | Rio de Janeiro
-  30 | Tildi  | tchavest@nytimes.com         | YOhMHS6      | 1978-03-30 | http://dummyimage.com/234x100.png/ff4444/ffffff |   3658 | 3658 | Rio de Janeiro
-  60 | Dianna | dchilles1n@diigo.com         | j2Z9XDSjJXfB | 1998-06-27 | http://dummyimage.com/100x100.png/ff4444/ffffff |   3658 | 3658 | Rio de Janeiro
- 100 | Ryon   | rmungan2r@symantec.com       | 6RpxB0dBUw   | 2001-08-12 | http://dummyimage.com/172x100.png/cc0000/ffffff |   3658 | 3658 | Rio de Janeiro
- 127 | Butch  | bhulles3i@ask.com            | 3kROOr       | 1969-05-24 | http://dummyimage.com/234x100.png/cc0000/ffffff |   3658 | 3658 | Rio de Janeiro
- 400 | Nowell | nkingsmillb3@cyberchimps.com | XJQXki89oum  | 1984-09-24 | http://dummyimage.com/108x100.png/ff4444/ffffff |   3658 | 3658 | Rio de Janeiro
+RESPOSTA FINAL:
 
-- Conseguindo unir as duas listas, agora vou especificar quais as colunas que eu quero ver, sendo elas:
-users.id, users.name e cities.name com o nome "city"
-
-QUERY: 
-
-SELECT users.id, users.name, cities.name AS city 
-FROM users 
-JOIN cities 
-ON users."cityId"= cities.id 
-WHERE users."cityId" = 3658;
-
-RESPOSTA:
-
- id  |  name  |      city      
------+--------+----------------
- 276 | Garnet | Rio de Janeiro
-   4 | Otho   | Rio de Janeiro
-  30 | Tildi  | Rio de Janeiro
-  60 | Dianna | Rio de Janeiro
- 100 | Ryon   | Rio de Janeiro
- 127 | Butch  | Rio de Janeiro
-
-- E por fim, colocar a lista em ordem crescente, considerando o users.id.
-
-QUERY: 
-
-SELECT users.id, users.name, cities.name AS city 
-FROM users 
-JOIN cities 
-ON users."cityId"= cities.id 
-WHERE users."cityId" = 3658 
-ORDER BY users.id ASC;
-
-RESPOSTA:
-
- id  |  name  |      city      
------+--------+----------------
-   4 | Otho   | Rio de Janeiro
-  30 | Tildi  | Rio de Janeiro
-  60 | Dianna | Rio de Janeiro
- 100 | Ryon   | Rio de Janeiro
- 127 | Butch  | Rio de Janeiro
- 276 | Garnet | Rio de Janeiro
- 400 | Nowell | Rio de Janeiro
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ id  |  writer   | recipient  |              message              
+-----+-----------+------------+-----------------------------------
+   1 | Freddi    | Justis     | Adorei trabalhar com o Justis
+   2 | Freddi    | Justis     | Adorei trabalhar com o Justis
+   3 | Chicky    | Antonio    | Adorei trabalhar com o Antonio
+.
+.
+.
+  99 | Lexis     | Hastie     | Adorei trabalhar com o Hastie
+ 100 | Virginia  | Lolita     | Adorei trabalhar com o Lolita
+ 101 | Syman     | Chadwick   | Adorei trabalhar com o Chadwick
 
 
 
